@@ -12,6 +12,7 @@ def download_youtube_audio(url: str) -> str:
         "format": "bestaudio/best",
         "outtmpl": output_path,
         "noplaylist": True,
+        #"cookiesfrombrowser": ("chrome",),
         "force_ipv4": True,
         "postprocessors": [
             {
@@ -27,9 +28,6 @@ def download_youtube_audio(url: str) -> str:
         filename = os.path.splitext(ydl.prepare_filename(info))[0] + ".wav"
     return filename   
 
-data = download_youtube_audio("https://www.youtube.com/watch?v=xlYJhtL0qbQ")
-
-
 # Dual Audio -> Mono Audio + Any Hz -> 16 KHz
 def convert_to_wav(input_path: str) -> str:
     """Convert any audio/video file to WAV format using pydub."""
@@ -39,9 +37,6 @@ def convert_to_wav(input_path: str) -> str:
 
     audio.export(output_path, format="wav")
     return output_path
-
-data_final = convert_to_wav(data)
-
 
 #CHUNKING
 def chunk_audio(wav_path : str, chunk_minutes: int = 10) -> list:
@@ -61,4 +56,44 @@ def chunk_audio(wav_path : str, chunk_minutes: int = 10) -> list:
 
     return chunks
 
-print(chunk_audio(data_final))
+#print(chunk_audio(data_final))
+
+
+def process_input(source: str) -> list:
+    if source.startswith("http://") or source.startswith("https://"):
+        print("Detected YouTube URL. Downloading audio...")
+        wav_path = download_youtube_audio(source)
+    else:
+        print("Detected local file. Converting to WAV...")
+        wav_path = convert_to_wav(source)
+
+    print("Chunking audio...")
+    chunks = chunk_audio(wav_path)
+    print(f"Audio ready — {len(chunks)} chunk(s) created.")
+    return chunks
+
+
+# ['downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_0.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_1.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_2.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_3.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_4.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_5.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project inPython_converted.wav_chunk_6.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_7.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_8.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_9.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_10.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_11.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_12.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_13.wav', 
+#  'downloads\\AI Video AssistantWith RAG ｜ Full Project in Python_converted.wav_chunk_14.wav', 
+#  'downloads\\AI Video Assistant With RAG｜ Full Project in Python_converted.wav_chunk_15.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_16.wav', 
+#  'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_17.wav',
+# 'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_18.wav', 
+# 'downloads\\AI Video Assistant With RAG ｜ Full Project in Python_converted.wav_chunk_19.wav']
+
+
+#now we can send this full into Wisper AI to transcribe our audio to text
+
