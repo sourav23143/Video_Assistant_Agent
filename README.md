@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.35+-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
 [![LangChain](https://img.shields.io/badge/LangChain-LCEL-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)](https://langchain.com)
-[![Mistral AI](https://img.shields.io/badge/Mistral_AI-Small-FF7000?style=for-the-badge)](https://mistral.ai)
+[![OpenAI](https://img.shields.io/badge/OpenAI-gpt--4o--mini-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com)
 [![Whisper](https://img.shields.io/badge/OpenAI_Whisper-Local-412991?style=for-the-badge&logo=openai&logoColor=white)](https://github.com/openai/whisper)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
@@ -55,7 +55,7 @@ An intelligent, end-to-end AI pipeline that takes any **YouTube video** or **loc
 | 🎥 **YouTube Integration** | Paste any YouTube URL — audio is automatically downloaded and processed |
 | 📁 **Local File Support** | Supports local `.mp4`, `.mp3`, `.wav`, `.webm`, and other audio/video formats |
 | 🗣️ **Dual Transcription Engines** | **English** → OpenAI Whisper (runs locally) · **Hinglish** → Sarvam AI (cloud API with auto-translation) |
-| 📋 **Smart Summarisation** | Map-Reduce summarisation using Mistral AI for long transcripts with chunked processing |
+| 📋 **Smart Summarisation** | Map-Reduce summarisation using OpenAI `gpt-4o-mini` for long transcripts with chunked processing |
 | ✅ **Action Item Extraction** | Automatically identifies tasks, owners, and deadlines from meetings |
 | 🔑 **Key Decision Detection** | Extracts all important decisions made during the meeting |
 | ❓ **Open Question Tracking** | Finds unresolved questions and topics needing follow-up |
@@ -101,7 +101,7 @@ An intelligent, end-to-end AI pipeline that takes any **YouTube video** or **loc
                             │  Full transcript text
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                  LLM ANALYSIS LAYER (Mistral AI)                │
+│                  LLM ANALYSIS LAYER (OpenAI)                    │
 │  ┌────────────┐ ┌──────────────┐ ┌───────────┐ ┌────────────┐  │
 │  │  Title     │ │  Summary     │ │  Action   │ │  Decisions │  │
 │  │  Generator │ │  (Map-Reduce)│ │  Items    │ │  & Q's     │  │
@@ -121,7 +121,7 @@ An intelligent, end-to-end AI pipeline that takes any **YouTube video** or **loc
 │         ┌──────────────────┐                 │                  │
 │         │  LCEL RAG Chain  │◄────────────────┘                  │
 │         │  (Retriever +    │                                    │
-│         │   Mistral LLM)   │                                    │
+│         │   OpenAI LLM)    │                                    │
 │         └──────────────────┘                                    │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
@@ -145,7 +145,7 @@ An intelligent, end-to-end AI pipeline that takes any **YouTube video** or **loc
 | **Audio Processing** | `pydub`, `FFmpeg` | Convert formats, chunk audio into segments |
 | **Speech-to-Text (English)** | `OpenAI Whisper` | Local model transcription (configurable size) |
 | **Speech-to-Text (Hinglish)** | `Sarvam AI API` | Cloud-based Hindi/Hinglish STT with auto English translation |
-| **LLM (Analysis)** | `Mistral AI` (`mistral-small-latest`) | Summarisation, extraction, title gen, RAG answers |
+| **LLM (Analysis)** | `OpenAI` (`gpt-4o-mini`) | Summarisation, extraction, title gen, RAG answers |
 | **LLM Orchestration** | `LangChain LCEL` | Prompt chaining, map-reduce, runnable pipelines |
 | **Vector Store** | `ChromaDB` | Local persistent vector database for RAG |
 | **Embeddings** | `all-MiniLM-L6-v2` (HuggingFace) | Sentence embeddings for semantic search |
@@ -238,7 +238,7 @@ return transcribe_chunk_whisper(chunk_path)       # Local model
 
 **Files:** `core/summarizer.py`, `core/extractor.py`
 
-All analysis is powered by **Mistral AI** (`mistral-small-latest`) through **LangChain LCEL** (LangChain Expression Language) chains:
+All analysis is powered by **OpenAI** (`gpt-4o-mini`) through **LangChain LCEL** (LangChain Expression Language) chains:
 
 #### Title Generation (`summarizer.py`)
 - Feeds the first 2,000 characters of the transcript to an LLM chain.
@@ -295,7 +295,7 @@ User Question
       └────────►├──→ Prompt Template (system + context + question)
                 │
                 ▼
-           Mistral LLM → StrOutputParser → Answer
+           OpenAI LLM → StrOutputParser → Answer
 ```
 
 - The retriever uses **cosine similarity** search to find the 4 most relevant transcript chunks.
@@ -329,7 +329,7 @@ The web UI is built with Streamlit and features:
   - Windows: `choco install ffmpeg` or download from [ffmpeg.org](https://ffmpeg.org/download.html)
   - macOS: `brew install ffmpeg`
   - Linux: `sudo apt install ffmpeg`
-- **Mistral AI API Key** (required)
+- **OpenAI API Key** (required)
 - **Sarvam AI API Key** (optional — only for Hinglish mode)
 
 ### Installation
@@ -359,7 +359,7 @@ pip install -r requirements.txt
 cp .env.example .env
 
 # Edit .env and add your API keys
-# MISTRAL_API_KEY=your_key_here        (Required)
+# OPENAI_API_KEY=your_key_here         (Required)
 # SARVAM_API_KEY=your_key_here         (Optional — Hinglish only)
 # WHISPER_MODEL=small                   (Optional — tiny/base/small/medium/large)
 ```
@@ -388,7 +388,7 @@ This app is fully configured for free deployment on [Streamlit Community Cloud](
 4. Click **Advanced settings** and set the **Python version to 3.11 or 3.12** (Important: 3.13+ is not recommended due to dependencies).
 5. Paste your API keys into the **Secrets** block:
    ```toml
-   MISTRAL_API_KEY = "your-mistral-key"
+   OPENAI_API_KEY = "your-openai-key"
    SARVAM_API_KEY = "your-sarvam-key"
    WHISPER_MODEL = "tiny"
    ```
@@ -414,10 +414,10 @@ This app is fully configured for free deployment on [Streamlit Community Cloud](
 
 ## 🔑 API Keys Required
 
-| Key | Required | Free Tier | Get It At |
-|-----|----------|-----------|-----------|
-| `MISTRAL_API_KEY` | ✅ Yes | ✅ Yes | [console.mistral.ai](https://console.mistral.ai/) |
-| `SARVAM_API_KEY` | ❌ Only for Hinglish | ✅ Yes | [sarvam.ai](https://www.sarvam.ai/) |
+| Key | Required | Notes | Get It At |
+|-----|----------|-------|-----------|
+| `OPENAI_API_KEY` | ✅ Yes | Required for analysis and extraction | [OpenAI Platform](https://platform.openai.com/) |
+| `SARVAM_API_KEY` | ❌ Only for Hinglish | Required only for Hinglish transcription | [sarvam.ai](https://www.sarvam.ai/) |
 
 ---
 
@@ -425,7 +425,7 @@ This app is fully configured for free deployment on [Streamlit Community Cloud](
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MISTRAL_API_KEY` | — | Your Mistral AI API key |
+| `OPENAI_API_KEY` | — | Your OpenAI API key |
 | `SARVAM_API_KEY` | — | Your Sarvam AI API key (Hinglish mode only) |
 | `WHISPER_MODEL` | `small` | Whisper model size: `tiny`, `base`, `small`, `medium`, `large` |
 | `SARVAM_STT_MODEL` | `saaras:v2.5` | Sarvam speech-to-text model version |
@@ -475,7 +475,7 @@ Contributions are welcome! Here's how to get started:
 ## 🙏 Built With
 
 - **OpenAI Whisper** — Local speech-to-text model
-- **Mistral AI** — LLM for analysis and RAG
+- **OpenAI (`gpt-4o-mini`)** — LLM for analysis and RAG
 - **Sarvam AI** — Hinglish speech-to-text translation
 - **LangChain** — LLM orchestration framework
 - **ChromaDB** — Vector database
