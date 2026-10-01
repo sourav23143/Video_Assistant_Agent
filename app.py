@@ -80,7 +80,7 @@ with st.container(border=True):
 
 if run_btn:
     if not source.strip():
-        st.warning("Enter a YouTube URL or local media file path in the sidebar to get started.")
+        st.warning("Enter a YouTube URL or local media file path in the video source form above.")
     else:
         st.session_state.pipeline_done = False
         st.session_state.result = None
@@ -236,7 +236,7 @@ if st.session_state.result:
 
 else:
     st.subheader("Start with a video")
-    st.write("Add a YouTube link or local media path in the sidebar, choose the language, and select **Analyze video**.")
+    st.write("Add a YouTube link or local media path in the video source form above, choose the language, and select **Analyze video**.")
 
     st.subheader("What you’ll get")
     feature_columns = st.columns(3)
