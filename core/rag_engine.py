@@ -3,7 +3,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
-from vector_store import build_vector_store, load_vector_store, get_retriver
+from core.vector_store import build_vector_store, load_vector_store, get_retriver
 
 
 
@@ -29,7 +29,7 @@ def build_rag_chain(transcript:str):  #by it > rag_chain will be built, every th
 
     vector_store = build_vector_store(transcript)
 
-    retriver = get_retriver(vector_store, K = 4)
+    retriver = get_retriver(vector_store, k=4)
 
     llm = get_llm()
 
@@ -69,7 +69,7 @@ def build_rag_chain(transcript:str):  #by it > rag_chain will be built, every th
 
 def load_rag_chain(): # load already existing rag 
     vector_store = load_vector_store()
-    retriver = get_retriver()
+    retriver = get_retriver(vector_store)
 
 
     llm = get_llm()

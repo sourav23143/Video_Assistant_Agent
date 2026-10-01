@@ -1,0 +1,26 @@
+[server]
+fileWatcherType = "none"
+
+[theme]
+base = "dark"
+primaryColor = "#6654D9"
+backgroundColor = "#10141B"
+secondaryBackgroundColor = "#181F2A"
+textColor = "#E8EDF5"
+borderColor = "#2A3544"
+greenColor = "#4CCB9A"
+redColor = "#F0747D"
+orangeColor = "#F2A65A"
+font = "sans-serif"
+headingFont = "sans-serif"
+baseRadius = "medium"
+buttonRadius = "medium"
+showWidgetBorder = true
+showSidebarBorder = true
+
+[theme.sidebar]
+backgroundColor = "#151B24"
+secondaryBackgroundColor = "#1C2531"
+textColor = "#E8EDF5"
+borderColor = "#2A3544"
+primaryColor = "#6654D9"

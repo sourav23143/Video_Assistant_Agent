@@ -12,8 +12,8 @@ def download_youtube_audio(url: str) -> str:
         "format": "bestaudio/best",
         "outtmpl": output_path,
         "noplaylist": True,
-        #"cookiesfrombrowser": ("chrome",),
         "force_ipv4": True,
+        "sleep_interval_requests": 1,
         "postprocessors": [
             {
                 "key": "FFmpegExtractAudio",
@@ -23,9 +23,42 @@ def download_youtube_audio(url: str) -> str:
         ],
         "quiet": True, #this will supress all the download progress log in the terminal, remove this if we wnat to see log while testing
     }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=True) #Extract and return the information dictionary of the URL
-        filename = os.path.splitext(ydl.prepare_filename(info))[0] + ".wav"
+
+    # Prefer an explicit cookie file when configured. Otherwise, read cookies
+    # from the selected browser (Chrome by default).
+    cookie_file = os.getenv("YTDLP_COOKIES_FILE", "").strip()
+    cookie_file = os.path.expandvars(os.path.expanduser(cookie_file)) if cookie_file else ""
+    browser = os.getenv("YTDLP_COOKIES_FROM_BROWSER", "chrome").strip() or "chrome"
+    if cookie_file:
+        if not os.path.isfile(cookie_file):
+            raise FileNotFoundError(
+                "YTDLP_COOKIES_FILE is set, but that file does not exist. "
+                "Set it to a Netscape-format cookies.txt file or clear the setting."
+            )
+        ydl_opts["cookiefile"] = cookie_file
+    else:
+        ydl_opts["cookiesfrombrowser"] = (browser,)
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True) #Extract and return the information dictionary for the URL
+            filename = os.path.splitext(ydl.prepare_filename(info))[0] + ".wav"
+    except yt_dlp.utils.DownloadError as error:
+        error_text = str(error)
+        if "Could not copy Chrome cookie database" in error_text:
+            raise RuntimeError(
+                f"yt-dlp cannot read the {browser.title()} cookie database while that "
+                f"browser is open. Close {browser.title()} completely and retry, or set "
+                "YTDLP_COOKIES_FILE to a local Netscape-format cookies.txt file."
+            ) from error
+        if "Failed to decrypt with DPAPI" in error_text:
+            raise RuntimeError(
+                "yt-dlp can read the browser cookie database but Windows would not "
+                "decrypt its cookies. Use a Netscape-format cookies.txt export and set "
+                "YTDLP_COOKIES_FILE in .env to that file."
+            ) from error
+        raise
+
     return filename   
 
 # Dual Audio -> Mono Audio + Any Hz -> 16 KHz
