@@ -10,8 +10,17 @@ load_dotenv()
 
 from utils.audio_processor import process_input
 from core.transcriber import transcribe_all
-from core.summarize import summarize, generate_title, split_transcript as split_summary
-from core.extractor import extract_meeting_items, split_transcript as split_extraction
+from core.summarizer import (
+    generate_title,
+    split_transcript as split_summary,
+    summarize,
+)
+from core.extractor import (
+    extract_action_items,
+    extract_key_decisions,
+    extract_question,
+    split_transcript as split_extraction,
+)
 
 
 SOURCE = "https://www.youtube.com/watch?v=_Q-e_nczWqM&t=223s"
@@ -19,7 +28,7 @@ LANGUAGE = "english"  # "english" uses Whisper; "hinglish" uses Sarvam.
 
 
 def run_stage(name, function):
-    """Run one analysis stage and print its traceback if it fails."""
+    """Run one pipeline stage and print its traceback if it fails."""
     try:
         return function()
     except Exception as error:
@@ -55,7 +64,7 @@ def main():
     print("=" * 60)
     print(transcript[:500] + ("..." if len(transcript) > 500 else ""))
 
-    # Show how many text chunks the summary and extractor will process.
+    # Show how many text chunks the summary and extractors will process.
     print(f"\nSummary chunks: {len(split_summary(transcript))}")
     print(f"Extraction chunks: {len(split_extraction(transcript))}")
 
@@ -63,11 +72,18 @@ def main():
     title = run_stage("Title generation", lambda: generate_title(transcript))
     summary = run_stage("Summarization", lambda: summarize(transcript))
 
-    # This wrapper splits the transcript, runs all three extractors per chunk,
-    # and consolidates the action items, decisions, and questions.
-    extracted = run_stage(
-        "Action-item, decision, and question extraction",
-        lambda: extract_meeting_items(transcript),
+    # Call each transcript-based extractor separately.
+    action_items = run_stage(
+        "Action-item extraction",
+        lambda: extract_action_items(transcript),
+    )
+    key_decisions = run_stage(
+        "Key-decision extraction",
+        lambda: extract_key_decisions(transcript),
+    )
+    open_questions = run_stage(
+        "Open-question extraction",
+        lambda: extract_question(transcript),
     )
 
     if title is not None:
@@ -79,21 +95,17 @@ def main():
         print("-" * 60)
         print(summary)
 
-    if extracted is not None:
-        print("\n" + "=" * 60)
-        print("ACTION ITEMS")
-        print("=" * 60)
-        print(extracted["action_items"])
-
-        print("\n" + "=" * 60)
-        print("KEY DECISIONS")
-        print("=" * 60)
-        print(extracted["decisions"])
-
-        print("\n" + "=" * 60)
-        print("OPEN QUESTIONS")
-        print("=" * 60)
-        print(extracted["questions"])
+    results = (
+        ("ACTION ITEMS", action_items),
+        ("KEY DECISIONS", key_decisions),
+        ("OPEN QUESTIONS", open_questions),
+    )
+    for heading, result in results:
+        if result is not None:
+            print("\n" + "=" * 60)
+            print(heading)
+            print("=" * 60)
+            print(result)
 
 
 if __name__ == "__main__":

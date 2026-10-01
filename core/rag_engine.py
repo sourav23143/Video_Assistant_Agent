@@ -1,0 +1,119 @@
+import os
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+from vector_store import build_vector_store, load_vector_store, get_retriver
+
+
+
+#for user question we dont neeed question embedding model as  ChromaDB automatically do that 
+# as when we give question to it for similarity search then it automatically take out simlar
+#chunks from its embedding only 
+
+
+def get_llm():
+    return ChatOpenAI(
+            model = "gpt-4o-mini", 
+            openai_api_key = os.getenv("OPENAI_API_KEY"),
+            temperature=0.2)
+
+
+
+#formating docs
+def format_docs(docs):
+    return "\n\n".join([doc.page_content for doc in docs])
+
+
+def build_rag_chain(transcript:str):  #by it > rag_chain will be built, every thing will get store in vector DB
+
+    vector_store = build_vector_store(transcript)
+
+    retriver = get_retriver(vector_store, K = 4)
+
+    llm = get_llm()
+
+    prompt = ChatPromptTemplate.from_messages([
+        (
+            "system",
+            """You are an expert meeting assistant. Answer the user's question 
+    based ONLY on the meeting transcript context provided below.
+
+    If the answer is not found in the context, say:
+    "I could not find this information in the meeting transcript."
+
+    Always be concise and precise. If quoting someone, mention it clearly.
+
+    Context from meeting transcript:
+    {context}"""
+            ),
+            ("human", "{question}"),
+    
+    ]
+    )
+
+
+    #full LCEL RAG pipeline
+    rag_chain = (
+        {
+            "context" : retriver | RunnableLambda(format_docs),
+            "question" : RunnablePassthrough() #we currently not have question, but if someone trigger it later than, it will have that function 
+        }
+        |prompt | llm | StrOutputParser()
+    )   
+
+    return rag_chain
+
+
+
+
+def load_rag_chain(): # load already existing rag 
+    vector_store = load_vector_store()
+    retriver = get_retriver()
+
+
+    llm = get_llm()
+
+    
+    prompt = ChatPromptTemplate.from_messages([
+        (
+            "system",
+            """You are an expert meeting assistant. Answer the user's question 
+    based ONLY on the meeting transcript context provided below.
+
+    If the answer is not found in the context, say:
+    "I could not find this information in the meeting transcript."
+
+    Always be concise and precise. If quoting someone, mention it clearly.
+
+    Context from meeting transcript:
+    {context}"""
+            ),
+            ("human", "{question}"),
+    
+    ]
+    )
+
+
+    rag_chain = (
+        {
+            "context" : retriver | RunnableLambda(format_docs),
+            "question" : RunnablePassthrough() #we currently not have question, but if someone trigger it later than, it will have that function 
+        }
+        |prompt | llm | StrOutputParser()
+    )   
+
+
+    return rag_chain
+
+
+
+def ask_question(rag_chain, question:str) -> str:
+    print(f"Question : {question}")
+    answer = rag_chain.invoke(question)
+    print(f"Answer : {answer}")
+    
+    return answer
+
+
+
