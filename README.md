@@ -115,4 +115,6 @@ vector_db/              Local ChromaDB data
 
 ## Data and credentials
 
-Audio downloads and chunks are written under `downloads/`. ChromaDB stores transcript chunks and embeddings under `vector_db/`. The repository ignores `downloads/`, `.env`, and `cookies.txt`; it does not currently ignore `vector_db/`, so treat that directory as potentially sensitive and do not commit it. Keep exported YouTube cookies private.
+Audio downloads and chunks are written under `downloads/`. ChromaDB stores transcript chunks and embeddings under `vector_db/`. The repository ignores `downloads/`, `.env`, and `cookies.txt`; it does not currently ignore `vector_db/`, so treat that directory as potentially sensitive and do not commit it. Keep exported YouTube cookies private .
+
+____
